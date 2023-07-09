@@ -1,0 +1,3 @@
+[submodule "jwt-protobuf"]
+	path = jwt-protobuf
+	url = git@github.com:apinanyogaratnam/jwt-protobuf
