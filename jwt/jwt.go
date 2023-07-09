@@ -4,14 +4,32 @@ import (
 	"log"
 	"time"
 	"fmt"
+	"database/sql"
 
 	jwt_protobuf "github.com/apinanyogaratnam/jwt-grpc-server/jwt-protobuf/jwt"
 
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 type Server struct {}
+
+func InsertEventIntoDatabase(userId int, event string) {
+	db, err := sql.Open("pgx", "postgres://postgres:postgres@localhost:5432/postgres");
+	if err != nil {
+		log.Fatalln("Unable to connect to database: ", err);
+	}
+
+	if err := db.Ping(); err != nil {
+		log.Fatalln("Unable to ping database: ", err);
+	}
+
+	row := db.QueryRow("INSERT INTO jwt_logs (user_id, event) VALUES ($1, $2)", userId, event);
+	if err := row.Err(); err != nil {
+		log.Fatalln("Unable to insert into database: ", err);
+	}
+}
 
 func GenerateJWT(userId int) (string, error) {
 	secretKey := "secret"
@@ -53,7 +71,11 @@ func ValidateToken(signedToken string) (bool, int) {
 
 func (*Server) GetToken(ctx context.Context, message *jwt_protobuf.GetTokenRequest) (*jwt_protobuf.GetTokenResponse, error) {
 	log.Println("Received message body from client: ", message.Id);
-	token, err := GenerateJWT(int(message.Id))
+	userId := int(message.Id)
+
+	InsertEventIntoDatabase(userId, "get-token");
+
+	token, err := GenerateJWT(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +84,10 @@ func (*Server) GetToken(ctx context.Context, message *jwt_protobuf.GetTokenReque
 
 func (*Server) ValidateToken(ctx context.Context, message *jwt_protobuf.ValidateTokenRequest) (*jwt_protobuf.ValidateTokenResponse, error) {
 	log.Println("Received message body from client: ", message.Token);
-	valid, _ := ValidateToken(message.Token)
+
+	valid, userId := ValidateToken(message.Token)
+
+	InsertEventIntoDatabase(userId, "validate-token")
+
 	return &jwt_protobuf.ValidateTokenResponse{Valid: valid}, nil;
 }
