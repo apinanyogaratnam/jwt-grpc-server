@@ -5,4 +5,3 @@ CREATE TABLE jwt_logs (
 );
 
 CREATE INDEX jwt_logs_user_id_idx ON jwt_logs (user_id);
-
