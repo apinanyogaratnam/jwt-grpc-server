@@ -5,6 +5,8 @@ import (
 	"time"
 	"fmt"
 
+	jwt_protobuf "github.com/apinanyogaratnam/jwt-grpc-server/jwt-protobuf/jwt"
+
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
 )
@@ -29,8 +31,8 @@ func GenerateJWT(userId int) (string, error) {
 	return signedToken, nil
 }
 
-func ValidateToken(signedToken string) (bool, string) {
-	secretKey := "your_secret_key"
+func ValidateToken(signedToken string) (bool, int) {
+	secretKey := "secret"
 	token, err := jwt.Parse(signedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -39,21 +41,27 @@ func ValidateToken(signedToken string) (bool, string) {
 	})
 
 	if err != nil {
-		return false, ""
+		return false, -1
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userId := claims["userId"].(string)
+		userId := int(claims["userId"].(float64))
 		return true, userId
 	}
-	return false, ""
+	return false, -1
 }
 
-func (*Server) GetToken(ctx context.Context, message *JWTRequest) (*JWTResponse, error) {
+func (*Server) GetToken(ctx context.Context, message *jwt_protobuf.GetTokenRequest) (*jwt_protobuf.GetTokenResponse, error) {
 	log.Println("Received message body from client: ", message.Id);
 	token, err := GenerateJWT(int(message.Id))
 	if err != nil {
 		return nil, err
 	}
-	return &JWTResponse{Token: token}, nil;
+	return &jwt_protobuf.GetTokenResponse{Token: token}, nil;
+}
+
+func (*Server) ValidateToken(ctx context.Context, message *jwt_protobuf.ValidateTokenRequest) (*jwt_protobuf.ValidateTokenResponse, error) {
+	log.Println("Received message body from client: ", message.Token);
+	valid, _ := ValidateToken(message.Token)
+	return &jwt_protobuf.ValidateTokenResponse{Valid: valid}, nil;
 }
