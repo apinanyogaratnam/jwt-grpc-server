@@ -4,7 +4,7 @@
 // 	protoc        v3.20.3
 // source: jwt-protobuf/protos/jwt.proto
 
-package __
+package jwt
 
 import (
 	context "context"
