@@ -4,7 +4,9 @@ import (
 	"log"
 	"net"
 
+	jwt_protobuf "github.com/apinanyogaratnam/jwt-grpc-server/jwt-protobuf/jwt"
 	"github.com/apinanyogaratnam/jwt-grpc-server/jwt"
+
 	"google.golang.org/grpc"
 )
 
@@ -17,7 +19,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	jwtServer := jwt.Server{}
-	jwt.RegisterJWTServiceServer(grpcServer, &jwtServer)
+	jwt_protobuf.RegisterJWTServiceServer(grpcServer, &jwtServer)
 
 	log.Println("Starting gRPC server on port 9000...");
 	if err := grpcServer.Serve(lis); err != nil {
