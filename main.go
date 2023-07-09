@@ -1,11 +1,11 @@
-package main;
+package main
 
 import (
 	"log"
 	"net"
 
-	jwt_protobuf "github.com/apinanyogaratnam/jwt-grpc-server/jwt-protobuf/jwt"
 	"github.com/apinanyogaratnam/jwt-grpc-server/jwt"
+	jwt_protobuf "github.com/apinanyogaratnam/jwt-grpc-server/jwt-protobuf/jwt"
 
 	"google.golang.org/grpc"
 )
@@ -13,7 +13,7 @@ import (
 func main() {
 	lis, err := net.Listen("tcp", ":9000")
 	if err != nil {
-		log.Fatal("Failed to listen on port 9000", err);
+		log.Fatal("Failed to listen on port 9000", err)
 	}
 
 	grpcServer := grpc.NewServer()
@@ -21,8 +21,8 @@ func main() {
 	jwtServer := jwt.Server{}
 	jwt_protobuf.RegisterJWTServiceServer(grpcServer, &jwtServer)
 
-	log.Println("Starting gRPC server on port 9000...");
+	log.Println("Starting gRPC server on port 9000...")
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalln("Failed to serve gRPC server over port 9000");
+		log.Fatalln("Failed to serve gRPC server over port 9000")
 	}
 }
