@@ -3,6 +3,7 @@ package jwt
 import (
 	"log"
 	"time"
+	"fmt"
 
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
@@ -26,6 +27,26 @@ func GenerateJWT(userId int) (string, error) {
 	}
 
 	return signedToken, nil
+}
+
+func ValidateToken(signedToken string) (bool, string) {
+	secretKey := "your_secret_key"
+	token, err := jwt.Parse(signedToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(secretKey), nil
+	})
+
+	if err != nil {
+		return false, ""
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userId := claims["userId"].(string)
+		return true, userId
+	}
+	return false, ""
 }
 
 func (*Server) GetToken(ctx context.Context, message *JWTRequest) (*JWTResponse, error) {
