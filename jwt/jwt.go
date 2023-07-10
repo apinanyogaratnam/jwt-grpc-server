@@ -16,7 +16,7 @@ import (
 type Server struct {}
 
 func InsertEventIntoDatabase(userId int, event string) {
-	db, err := sql.Open("pgx", "postgres://postgres:postgres@localhost:5432/postgres");
+	db, err := sql.Open("pgx", "postgres://postgres:postgres@host.docker.internal:5432/postgres");
 	if err != nil {
 		log.Fatalln("Unable to connect to database: ", err);
 	}
